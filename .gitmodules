@@ -1,0 +1,3 @@
+[submodule "todo_app_react"]
+	path = todo_app_react
+	url = git@github.com:Vijay-2005/todo_app_react.git
