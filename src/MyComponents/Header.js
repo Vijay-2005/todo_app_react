@@ -1,21 +1,58 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { logOut } from '../auth/authService';
 
 export default function Header(props) {
   const [searchTerm, setSearchTerm] = useState("");
-
+  const navigate = useNavigate();
+  
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
     props.onSearch(value);
   };
+  
+  const handleLogout = async () => {
+    try {
+      const response = await logOut();
+      if (response.success) {
+        navigate('/login');
+      } else {
+        alert("Failed to logout. Please try again.");
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
 
   return (
     <nav className="header mb-4">
       <h1>{props.title}</h1>
-      {props.searchBar && (
+      
+      <div className="d-flex justify-content-center my-3">
+        {props.user ? (
+          <div className="d-flex align-items-center">
+            <span className="me-3 text-light">
+              <i className="fas fa-user me-2"></i>
+              {props.user.email}
+            </span>
+            <button 
+              className="btn btn-outline-light" 
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <div>
+            <Link to="/login" className="btn btn-outline-light me-2">Login</Link>
+            <Link to="/register" className="btn btn-outline-light">Register</Link>
+          </div>
+        )}
+      </div>
+      
+      {props.searchBar && props.user && (
         <div className="search-container mt-3">
           <div className="input-group" style={{maxWidth: '400px', margin: '0 auto'}}>
             <input
@@ -38,5 +75,6 @@ export default function Header(props) {
 Header.propTypes = {
   title: PropTypes.string,
   searchBar: PropTypes.bool.isRequired,
-  onSearch: PropTypes.func
+  onSearch: PropTypes.func,
+  user: PropTypes.object
 };
