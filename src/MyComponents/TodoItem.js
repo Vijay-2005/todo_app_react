@@ -22,8 +22,8 @@ export const TodoItem = ({ todo, onDelete }) => {
 
   return (
     <div className="todo-item">
-      <div className="d-flex justify-content-between align-items-center">
-        <div className="todo-content">
+      <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+        <div className="todo-content flex-grow-1 mb-2 mb-sm-0">
           <h4 className="todo-title mb-2">{todo.title}</h4>
           <p className="todo-desc mb-1">{todo.desc}</p>
           {todo.createdAt && (
@@ -34,12 +34,12 @@ export const TodoItem = ({ todo, onDelete }) => {
           )}
         </div>
         <button 
-          className="btn delete-btn ms-3" 
+          className="btn delete-btn mt-2 mt-sm-0" 
           onClick={() => onDelete(todo)}
           title="Delete Todo"
         >
           <i className="fas fa-trash-alt me-2"></i>
-          Delete
+          <span className="d-none d-sm-inline">Delete</span>
         </button>
       </div>
     </div>

@@ -33,10 +33,12 @@ export default function Header(props) {
       <div className="d-flex justify-content-center my-3">
         {props.user ? (
           <div className="d-flex align-items-center">
-            <span className="me-3 text-light">
-              <i className="fas fa-user me-2"></i>
-              {props.user.email}
-            </span>
+            <div className="profile-container me-3">
+              <div className="profile-icon" title={props.user.email}>
+                <i className="fas fa-user-circle"></i>
+                <span className="email-tooltip">{props.user.email}</span>
+              </div>
+            </div>
             <button 
               className="btn btn-outline-light" 
               onClick={handleLogout}

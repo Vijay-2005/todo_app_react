@@ -470,3 +470,70 @@
   color: white;
   text-decoration: none; /* Add this line to ensure no underline on hover */
 }
+
+/* Profile Icon Styles */
+.profile-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #3b82f6, #10b981);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.profile-icon i {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.profile-icon:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+}
+
+.email-tooltip {
+  position: absolute;
+  bottom: 120%;  /* Changed from top: 110% to bottom: 120% */
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  color: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 100; /* Increased z-index to ensure it's above other elements */
+}
+
+.profile-icon:hover .email-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Add arrow to tooltip - modified to point downward */
+.email-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;  /* Changed from bottom: 100% to top: 100% */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(15, 23, 42, 0.95) transparent transparent transparent;  /* Changed arrow direction */
+}
