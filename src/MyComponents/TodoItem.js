@@ -2,7 +2,7 @@
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
-export const TodoItem = ({ todo, onDelete }) => {
+export const TodoItem = ({ todo, onDelete, synced = true }) => {
   // Format the date if it exists
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
@@ -30,8 +30,14 @@ export const TodoItem = ({ todo, onDelete }) => {
             <small className="text-muted">
               <i className="fas fa-clock me-2"></i>
               {formatDate(todo.createdAt)}
+              {todo.userId && <span className="ms-2"><i className="fas fa-user me-1"></i>{todo.userId.slice(0, 5)}...</span>}
             </small>
           )}
+          {/* Sync status indicator */}
+          <small className={`ms-2 ${synced ? 'text-success' : 'text-warning'}`}>
+            <i className={`fas ${synced ? 'fa-cloud-upload-alt' : 'fa-sync'}`}></i>
+            <span className="ms-1">{synced ? 'Synced' : 'Syncing...'}</span>
+          </small>
         </div>
         <button 
           className="btn delete-btn mt-2 mt-sm-0" 
