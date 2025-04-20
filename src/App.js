@@ -65,7 +65,7 @@ function App() {
       const result = await testDbConnection();
       if (!result.success) {
         console.error("Database connection test failed:", result.error);
-        setDbError("Failed to connect to database. Please check your connection.");
+        setDbError("");
       }
     };
     testDb();
