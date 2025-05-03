@@ -8,8 +8,18 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import { auth } from './auth/firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
-import { getUserTodos, addTodo, deleteTodo, testDbConnection } from './services/todoService';
+import { onAuthStateChanged, getIdToken } from 'firebase/auth';
+import { 
+  getUserTodos, 
+  addTodo, 
+  deleteTodo, 
+  editTodo, 
+  completeTodo, 
+  testDbConnection 
+} from './services/todoService';
+import { FirebaseAuthService } from './services/apiService';
+import { testAPIConnection } from './utils/apiTester';
+import Debug from './pages/Debug';
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -27,11 +37,31 @@ function App() {
   // Listen for authentication state changes
   useEffect(() => {
     console.log("Setting up auth listener");
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       console.log("Auth state changed:", currentUser ? "User logged in" : "No user");
       setUser(currentUser);
       
       if (currentUser) {
+        // Get Firebase token and store it for API calls
+        try {
+          // Force token refresh to ensure we have the latest token
+          await currentUser.getIdToken(true);
+          const token = await getIdToken(currentUser);
+          console.log("Got Firebase token for API authentication (length: " + token.length + ")");
+          
+          // Store the token for API calls
+          FirebaseAuthService.setToken(token);
+          
+          // Log token format (without revealing actual token)
+          if (token.includes('.')) {
+            console.log("Token format: Valid JWT format with periods");
+          } else {
+            console.warn("Token format warning: Does not contain periods");
+          }
+        } catch (error) {
+          console.error("Error getting Firebase token:", error);
+        }
+        
         // Load cached todos from localStorage immediately after login
         const storageKey = getTodosStorageKey(currentUser.uid);
         const cachedTodos = localStorage.getItem(storageKey);
@@ -46,6 +76,9 @@ function App() {
             console.error("Error parsing cached todos:", e);
           }
         }
+      } else {
+        // Clear Firebase token when logged out
+        FirebaseAuthService.clearToken();
       }
       
       setLoading(false);
@@ -62,10 +95,29 @@ function App() {
   // Test database connection when app loads
   useEffect(() => {
     const testDb = async () => {
-      const result = await testDbConnection();
-      if (!result.success) {
-        console.error("Database connection test failed:", result.error);
-        setDbError("");
+      try {
+        const result = await testDbConnection();
+        if (!result.success) {
+          console.error("Database connection test failed:", result.error);
+          
+          // If it's a timeout error, try the direct API test
+          if (result.error && result.error.includes('timeout')) {
+            console.log("Timeout detected, running direct API connection test...");
+            const apiTest = await testAPIConnection();
+            
+            if (!apiTest.success) {
+              // Set more specific error message from the API test
+              setDbError(apiTest.error || "Failed to connect to backend. Please check if the server is running.");
+            } else {
+              setDbError("API server is running but the authentication or request timed out. Check Firebase setup.");
+            }
+          } else {
+            setDbError(result.error || "Failed to connect to database. Please check your connection.");
+          }
+        }
+      } catch (error) {
+        console.error("Error testing database connection:", error);
+        setDbError("An unexpected error occurred when connecting to the backend.");
       }
     };
     testDb();
@@ -143,10 +195,13 @@ function App() {
       return;
     }
     
-    const filtered = todos.filter(todo => 
-      todo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      todo.desc.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = todos.filter(todo => {
+      const title = todo.title ? todo.title.toLowerCase() : '';
+      const description = (todo.desc || todo.description || '').toLowerCase();
+      const term = searchTerm.toLowerCase();
+      
+      return title.includes(term) || description.includes(term);
+    });
     setFilteredTodos(filtered);
   };
 
@@ -206,6 +261,66 @@ function App() {
     }
   };
 
+  // Edit a todo
+  const onEdit = async (todoId, title, desc) => {
+    if (!user) return;
+    
+    try {
+      console.log("Editing todo:", todoId, { title, desc });
+      const response = await editTodo(todoId, title, desc);
+      
+      if (response.success) {
+        console.log("Todo edited successfully");
+        const updatedTodos = todos.map(todo => 
+          todo.id === todoId ? { ...todo, title, desc, updatedAt: response.todo.updatedAt } : todo
+        );
+        
+        // Update state
+        setTodos(updatedTodos);
+        setFilteredTodos(updatedTodos);
+        
+        // Update localStorage with user-specific key
+        const storageKey = getTodosStorageKey(user.uid);
+        localStorage.setItem(storageKey, JSON.stringify(updatedTodos));
+        console.log("Updated localStorage after edit with key:", storageKey);
+      } else {
+        console.error("Error editing todo:", response.error);
+      }
+    } catch (error) {
+      console.error("Error in edit operation:", error);
+    }
+  };
+  
+  // Complete a todo
+  const onComplete = async (todoId, completed) => {
+    if (!user) return;
+    
+    try {
+      console.log("Updating todo completion status:", todoId, completed);
+      const response = await completeTodo(todoId, completed);
+      
+      if (response.success) {
+        console.log("Todo completion status updated successfully");
+        const updatedTodos = todos.map(todo => 
+          todo.id === todoId ? { ...todo, completed, completedAt: response.todo.completedAt } : todo
+        );
+        
+        // Update state
+        setTodos(updatedTodos);
+        setFilteredTodos(updatedTodos);
+        
+        // Update localStorage with user-specific key
+        const storageKey = getTodosStorageKey(user.uid);
+        localStorage.setItem(storageKey, JSON.stringify(updatedTodos));
+        console.log("Updated localStorage after completion status change with key:", storageKey);
+      } else {
+        console.error("Error updating todo completion status:", response.error);
+      }
+    } catch (error) {
+      console.error("Error in complete operation:", error);
+    }
+  };
+
   // Protected route component
   const ProtectedRoute = ({ children }) => {
     console.log("ProtectedRoute check - User:", !!user, "AuthChecked:", authChecked, "Loading:", loading);
@@ -261,6 +376,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/debug" element={<Debug />} />
           <Route 
             path="/" 
             element={
@@ -268,7 +384,9 @@ function App() {
                 <Home 
                   todos={filteredTodos} 
                   addTodoItem={addTodoItem} 
-                  onDelete={onDelete} 
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  onComplete={onComplete}
                   loading={loading}
                 />
               </ProtectedRoute>

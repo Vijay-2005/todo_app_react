@@ -3,8 +3,10 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut,
-  sendEmailVerification 
+  sendEmailVerification,
+  getIdToken 
 } from "firebase/auth";
+import { FirebaseAuthService } from "../services/apiService";
 
 // Sign Up Function
 export const signUp = async (email, password) => {
@@ -99,8 +101,13 @@ export const resendVerificationEmail = async (user) => {
 // Log Out Function
 export const logOut = async () => {
   try {
+    // Clear the Firebase token first
+    FirebaseAuthService.clearToken();
+    
+    // Then sign out from Firebase
     await signOut(auth);
     console.log("User signed out successfully");
+    
     return { success: true };
   } catch (error) {
     console.error("Logout error:", error.code, error.message);

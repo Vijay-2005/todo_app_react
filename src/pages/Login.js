@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { logIn, resendVerificationEmail } from '../auth/authService';
 import { auth } from '../auth/firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, getIdToken } from 'firebase/auth';
+import { FirebaseAuthService } from '../services/apiService';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -43,8 +44,23 @@ const Login = () => {
       
       if (response.success) {
         // Login successful
-        console.log("Login successful, navigating to home");
-        navigate('/');
+        console.log("Login successful, getting Firebase token");
+        
+        try {
+          // Get the Firebase token manually and store it
+          const token = await getIdToken(response.user);
+          console.log("Got Firebase token:", token.substring(0, 10) + "...");
+          
+          // Store the token in localStorage
+          FirebaseAuthService.setToken(token);
+          
+          // Navigate to home
+          console.log("Token saved, navigating to home");
+          navigate('/');
+        } catch (tokenError) {
+          console.error("Error getting Firebase token:", tokenError);
+          setError("Failed to authenticate with the server. Please try again.");
+        }
       } else if (response.emailVerification) {
         // Email not verified case
         setError(response.error);

@@ -1,7 +1,7 @@
 import AddTodo from '../MyComponents/AddTodo';
 import { Todos } from '../MyComponents/Todos';
 
-const Home = ({ todos, addTodoItem, onDelete, loading }) => {
+const Home = ({ todos, addTodoItem, onDelete, onEdit, onComplete, loading }) => {
   return (
     <div className="container py-4">
       <div className="row justify-content-center">
@@ -17,7 +17,12 @@ const Home = ({ todos, addTodoItem, onDelete, loading }) => {
                   <p className="mt-2">Loading your todos...</p>
                 </div>
               ) : (
-                <Todos todos={todos} onDelete={onDelete} />
+                <Todos 
+                  todos={todos} 
+                  onDelete={onDelete} 
+                  onEdit={onEdit}
+                  onComplete={onComplete}
+                />
               )}
             </div>
           </div>
