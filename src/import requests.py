@@ -119,3 +119,31 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Test Frontend with Production API Settings
+# This test script will temporarily set your React app to use production API settings for local testing.
+
+import os
+import requests
+import time
+
+# Define the API endpoints to test
+render_api_url = "https://todo-web-backend-jqp2.onrender.com/api"
+
+print("Testing connection to Render backend...")
+try:
+    response = requests.get(f"{render_api_url}", timeout=5)
+    print(f"Connection to Render backend: Status {response.status_code}")
+    if response.status_code < 400:
+        print("✅ Connection successful!")
+    else:
+        print(f"⚠️ Received error status code: {response.status_code}")
+except Exception as e:
+    print(f"❌ Failed to connect to Render backend: {str(e)}")
+
+print("\nTo test your React app with production API settings, you can:")
+print("1. Set the environment variable REACT_APP_API_BASE_URL to the Render URL")
+print("2. Start your React app with the production flag")
+print("\nRun the following commands in your terminal:\n")
+print('set "REACT_APP_API_BASE_URL=https://todo-web-backend-jqp2.onrender.com"')
+print("npm start")

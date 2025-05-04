@@ -112,34 +112,26 @@ export const addTodo = async (userId, title, desc) => {
       completed: false
     };
     
-    // Use fetch API directly to make the request
-    const response = await fetch('/api/tasks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token
-      },
-      body: JSON.stringify(taskData)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // Use the TaskService to create the task instead of direct fetch
+    try {
+      const savedTask = await TaskService.createTask(taskData);
+      
+      // Map the task back to frontend structure
+      return { 
+        success: true, 
+        todo: {
+          id: savedTask.id,
+          userId: savedTask.userId,
+          title: savedTask.title,
+          desc: savedTask.description, // Map description back to desc
+          completed: savedTask.completed,
+          createdAt: savedTask.createdAt ? new Date(savedTask.createdAt) : new Date()
+        }
+      };
+    } catch (apiError) {
+      console.error("API Error in createTask:", apiError);
+      throw apiError;
     }
-    
-    const savedTask = await response.json();
-    
-    // Map the task back to frontend structure
-    return { 
-      success: true, 
-      todo: {
-        id: savedTask.id,
-        userId: savedTask.userId,
-        title: savedTask.title,
-        desc: savedTask.description, // Map description back to desc
-        completed: savedTask.completed,
-        createdAt: savedTask.createdAt ? new Date(savedTask.createdAt) : new Date()
-      }
-    };
   } catch (error) {
     console.error("Error adding todo:", error.message);
     return { 
