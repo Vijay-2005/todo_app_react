@@ -7,7 +7,7 @@
 // Base API URL - Using direct URL for production and proxy for development
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 
                      (process.env.NODE_ENV === 'production' 
-                      ? 'https://todowebbackend-production.up.railway.app' 
+                      ? 'https://todo-web-backend-jqp2.onrender.com' 
                       : '/api');
 
 console.log("Using API base URL:", API_BASE_URL);
@@ -15,14 +15,14 @@ console.log("Using API base URL:", API_BASE_URL);
 // API endpoints
 const ENDPOINTS = {
   // Task endpoints
-  TASKS: '/tasks',
-  TASK_BY_ID: (id) => `/tasks/${id}`,
-  SEARCH_TASKS: (query) => `/tasks/?search=${encodeURIComponent(query)}`,
-  FILTER_TASKS: (completed) => `/tasks/?completed=${completed}`,
+  TASKS: '/api/tasks',
+  TASK_BY_ID: (id) => `/api/tasks/${id}`,
+  SEARCH_TASKS: (query) => `/api/tasks/?search=${encodeURIComponent(query)}`,
+  FILTER_TASKS: (completed) => `/api/tasks/?completed=${completed}`,
   
   // Auth endpoints (if needed)
-  AUTH: '/auth',
-  FIREBASE_AUTH: '/auth/firebase'
+  AUTH: '/api/auth',
+  FIREBASE_AUTH: '/api/auth/firebase'
 };
 
 // Request timeout in milliseconds

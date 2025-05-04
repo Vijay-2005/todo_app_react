@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api.config';
 
 /**
  * Simple utility to test API connectivity
@@ -8,7 +9,10 @@ const testAPIConnection = async () => {
   
   // Try to access the backend directly
   try {
-    const response = await axios.get('http://localhost:8081/api', { 
+    const baseUrl = process.env.NODE_ENV === 'production' 
+                    ? 'https://todo-web-backend-jqp2.onrender.com' 
+                    : 'http://localhost:8081';
+    const response = await axios.get(`${baseUrl}/api`, { 
       timeout: 5000,
       validateStatus: function (status) {
         // Consider any response a success for testing connectivity
@@ -28,7 +32,7 @@ const testAPIConnection = async () => {
     if (error.code === 'ECONNREFUSED') {
       return { 
         success: false, 
-        error: "Cannot connect to the backend server. Make sure the backend is running on http://localhost:8081." 
+        error: "Cannot connect to the backend server. Make sure the backend is running on the correct URL." 
       };
     }
     
@@ -51,10 +55,13 @@ const checkCORSIssues = async () => {
   console.log("Checking for potential CORS issues...");
   
   try {
+    const baseUrl = process.env.NODE_ENV === 'production' 
+                    ? 'https://todo-web-backend-jqp2.onrender.com' 
+                    : 'http://localhost:8081';
     // Send an OPTIONS request to check CORS preflight
     const response = await axios({
       method: 'OPTIONS',
-      url: 'http://localhost:8081/api',
+      url: `${baseUrl}/api`,
       timeout: 3000
     });
     console.log("CORS preflight response:", response.status);
@@ -108,6 +115,9 @@ const testTaskCreation = async (token) => {
       'Authorization': cleanToken
     };
     
+    const baseUrl = process.env.NODE_ENV === 'production' 
+                    ? 'https://todo-web-backend-jqp2.onrender.com' 
+                    : 'http://localhost:8081';
     // Try a direct POST request to the backend
     console.log("Sending direct POST request to task endpoint");
     console.log("Headers:", {
@@ -116,7 +126,7 @@ const testTaskCreation = async (token) => {
     });
     console.log("Data:", testTask);
     
-    const response = await axios.post('http://localhost:8081/api/tasks', testTask, { 
+    const response = await axios.post(`${baseUrl}/api/tasks`, testTask, { 
       timeout: 5000,
       headers: headers
     });
@@ -171,4 +181,4 @@ const testTaskCreation = async (token) => {
   }
 };
 
-export { testAPIConnection, checkCORSIssues, testTaskCreation }; 
+export { testAPIConnection, checkCORSIssues, testTaskCreation };
