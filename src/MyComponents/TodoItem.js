@@ -101,7 +101,7 @@ export const TodoItem = ({ todo, onDelete, onEdit, onComplete, synced = true }) 
                     <i className="fas fa-edit"></i>
                   </button>
                   <button 
-                    className="btn btn-sm btn-outline-danger mb-1" 
+                    className="btn btn-sm btn-outline-danger me-1 mb-1" 
                     onClick={() => onDelete(todo)}
                     title="Delete Todo"
                   >

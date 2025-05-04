@@ -551,6 +551,15 @@
   transition: all 0.2s ease;
 }
 
+/* Ensure buttons are vertically aligned */
+.action-buttons {
+  display: flex;
+  align-items: center; /* Align items vertically */
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 8px; /* Add spacing between buttons */
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
 @media (max-width: 576px) {
   .action-buttons .btn {
     min-width: 32px;
