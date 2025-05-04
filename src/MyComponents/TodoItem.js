@@ -78,55 +78,67 @@ export const TodoItem = ({ todo, onDelete, onEdit, onComplete, synced = true }) 
           </div>
         ) : (
           <>
-            <div className="d-flex justify-content-between align-items-center">
-              <h4 className={`todo-title mb-2 ${todo.completed ? 'text-decoration-line-through text-muted' : ''}`}>
-                {todo.title}
-              </h4>
-              <div className="action-buttons d-flex">
-                <button 
-                  className="btn btn-sm btn-outline-success me-2" 
-                  onClick={handleCompleteToggle}
-                  title={todo.completed ? "Mark as incomplete" : "Mark as complete"}
-                >
-                  <i className={`fas ${todo.completed ? 'fa-check-circle' : 'fa-circle'}`}></i>
-                </button>
-                <button 
-                  className="btn btn-sm btn-outline-primary me-2" 
-                  onClick={() => setIsEditing(true)}
-                  title="Edit Todo"
-                >
-                  <i className="fas fa-edit"></i>
-                </button>
-                <button 
-                  className="btn btn-sm btn-outline-danger" 
-                  onClick={() => onDelete(todo)}
-                  title="Delete Todo"
-                >
-                  <i className="fas fa-trash-alt"></i>
-                </button>
+            <div className="row align-items-center mb-2">
+              <div className="col-md-8 col-sm-7 col-7">
+                <h4 className={`todo-title ${todo.completed ? 'text-decoration-line-through text-muted' : ''}`}>
+                  {todo.title}
+                </h4>
+              </div>
+              <div className="col-md-4 col-sm-5 col-5 text-end">
+                <div className="action-buttons d-flex justify-content-end flex-wrap">
+                  <button 
+                    className="btn btn-sm btn-outline-success me-1 mb-1" 
+                    onClick={handleCompleteToggle}
+                    title={todo.completed ? "Mark as incomplete" : "Mark as complete"}
+                  >
+                    <i className={`fas ${todo.completed ? 'fa-check-circle' : 'fa-circle'}`}></i>
+                  </button>
+                  <button 
+                    className="btn btn-sm btn-outline-primary me-1 mb-1" 
+                    onClick={() => setIsEditing(true)}
+                    title="Edit Todo"
+                  >
+                    <i className="fas fa-edit"></i>
+                  </button>
+                  <button 
+                    className="btn btn-sm btn-outline-danger mb-1" 
+                    onClick={() => onDelete(todo)}
+                    title="Delete Todo"
+                  >
+                    <i className="fas fa-trash-alt"></i>
+                  </button>
+                </div>
               </div>
             </div>
             <p className={`todo-desc mb-2 ${todo.completed ? 'text-decoration-line-through text-muted' : ''}`}>
               {description}
             </p>
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="metadata">
-                {todo.createdAt && (
-                  <small className="text-muted">
-                    <i className="fas fa-clock me-1"></i>
-                    {formatDate(todo.createdAt)}
-                    {todo.userId && <span className="ms-2"><i className="fas fa-user me-1"></i>{todo.userId.slice(0, 5)}...</span>}
+            <div className="row align-items-center">
+              <div className="col-md-8 col-sm-7 col">
+                <div className="metadata">
+                  {todo.createdAt && (
+                    <small className="text-muted d-inline-block me-2">
+                      <i className="fas fa-clock me-1"></i>
+                      {formatDate(todo.createdAt)}
+                    </small>
+                  )}
+                  {todo.userId && (
+                    <small className="text-muted d-inline-block me-2">
+                      <i className="fas fa-user me-1"></i>{todo.userId.slice(0, 5)}...
+                    </small>
+                  )}
+                  {/* Sync status indicator */}
+                  <small className={`d-inline-block ${synced ? 'text-success' : 'text-warning'}`}>
+                    <i className={`fas ${synced ? 'fa-cloud-upload-alt' : 'fa-sync'}`}></i>
+                    <span className="ms-1 d-none d-sm-inline">{synced ? 'Synced' : 'Syncing...'}</span>
                   </small>
-                )}
-                {/* Sync status indicator */}
-                <small className={`ms-2 ${synced ? 'text-success' : 'text-warning'}`}>
-                  <i className={`fas ${synced ? 'fa-cloud-upload-alt' : 'fa-sync'}`}></i>
-                  <span className="ms-1">{synced ? 'Synced' : 'Syncing...'}</span>
-                </small>
+                </div>
               </div>
-              {todo.completed && (
-                <span className="badge bg-success">Completed</span>
-              )}
+              <div className="col-md-4 col-sm-5 col text-end">
+                {todo.completed && (
+                  <span className="badge bg-success">Completed</span>
+                )}
+              </div>
             </div>
           </>
         )}

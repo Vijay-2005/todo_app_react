@@ -257,6 +257,7 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .todo-item::before {
@@ -536,4 +537,96 @@
   border-width: 6px;
   border-style: solid;
   border-color: rgba(15, 23, 42, 0.95) transparent transparent transparent;  /* Changed arrow direction */
+}
+
+/* Adding responsive styles for action buttons */
+.action-buttons .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 576px) {
+  .action-buttons .btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0.2rem;
+  }
+  
+  .todo-title {
+    font-size: 1.2rem;
+    word-break: break-word;
+  }
+  
+  .metadata small {
+    font-size: 0.7rem;
+  }
+}
+
+/* Additional responsive styles */
+@media (max-width: 768px) {
+  .card {
+    padding: 20px;
+  }
+  
+  .header h1 {
+    font-size: 2.2rem;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .card {
+    padding: 15px;
+  }
+  
+  .header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .header {
+    padding: 15px 10px;
+    margin-bottom: 20px;
+  }
+  
+  .todo-item .card-body {
+    padding: 12px;
+  }
+  
+  .todo-desc {
+    font-size: 0.9rem;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+  }
+  
+  .footer {
+    margin-top: 20px;
+    padding: 15px 10px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Ensure buttons never get hidden */
+.action-buttons {
+  flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+  margin-bottom: 0.25rem;
+}
+
+/* Fix for long task titles */
+.todo-title {
+  word-break: break-word;
+  hyphens: auto;
 }
