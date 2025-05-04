@@ -6,6 +6,7 @@ export default function AddTodo({ AddTodo }) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const submit = async (e) => {
     e.preventDefault();
@@ -15,11 +16,20 @@ export default function AddTodo({ AddTodo }) {
     }
     
     setIsSubmitting(true);
+    setErrorMessage("");
     
     try {
-      await AddTodo(title, desc);
-      setTitle("");
-      setDesc("");
+      const result = await AddTodo(title, desc);
+      
+      if (result && result.success) {
+        setTitle("");
+        setDesc("");
+      } else {
+        setErrorMessage(result?.error || "Failed to add todo. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error adding todo:", error);
+      setErrorMessage("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -31,49 +41,45 @@ export default function AddTodo({ AddTodo }) {
         <i className="fas fa-tasks me-2"></i>
         Add a New Todo
       </h3>
+      
+      {errorMessage && (
+        <div className="alert alert-danger">
+          {errorMessage}
+        </div>
+      )}
+      
       <form onSubmit={submit}>
-        <div className="form-floating mb-3">
-          <input
-            type="text"
+        <div className="mb-3">
+          <label htmlFor="title" className="form-label">Title</label>
+          <input 
+            type="text" 
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="form-control custom-input"
-            id="title"
-            placeholder=" "
-            disabled={isSubmitting}
+            className="form-control" 
+            id="title" 
+            placeholder="What needs to be done?"
           />
-          <label htmlFor="title">
-            <i className="fas fa-heading me-2"></i>
-            Todo Title
-          </label>
         </div>
-        <div className="form-floating mb-3">
-          <textarea
+        <div className="mb-3">
+          <label htmlFor="desc" className="form-label">Description</label>
+          <textarea 
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
-            className="form-control custom-input"
-            id="desc"
-            placeholder=" "
-            style={{height: "100px"}}
-            disabled={isSubmitting}
+            className="form-control" 
+            id="desc" 
+            rows="3"
+            placeholder="Add some details..."
           ></textarea>
-          <label htmlFor="desc">
-            <i className="fas fa-align-left me-2"></i>
-            Todo Description
-          </label>
         </div>
-        <button type="submit" className="btn btn-primary w-100" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Adding...
-            </>
-          ) : (
-            <>
-              Add Todo <i className="fas fa-plus ms-2"></i>
-            </>
-          )}
-        </button>
+        <div className="d-grid">
+          <button 
+            type="submit" 
+            className="btn btn-primary"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Adding...' : 'Add Todo'}
+          </button>
+        </div>
       </form>
     </div>
   );

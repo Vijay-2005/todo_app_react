@@ -1,4 +1,4 @@
-import { TaskService, FirebaseAuthService } from './apiService';
+import { TaskService } from './apiService';
 
 // Test database connection
 export const testDbConnection = async () => {
@@ -99,7 +99,11 @@ export const addTodo = async (userId, title, desc) => {
       return { success: false, error: "User not authenticated" };
     }
     
-    console.log(`Adding todo for user ${userId}:`, { title, desc });
+    // Check if Firebase token exists
+    const token = localStorage.getItem('firebaseToken');
+    if (!token) {
+      return { success: false, error: "No authentication token found. Please log in again." };
+    }
     
     // Create task data with the correct field names for the backend
     const taskData = {
@@ -108,76 +112,40 @@ export const addTodo = async (userId, title, desc) => {
       completed: false
     };
     
-    // Use the API service to create the task
-    console.log("Sending API request to create task");
-    try {
-      const savedTask = await TaskService.createTask(taskData);
-      console.log("Task added with ID:", savedTask.id);
-      
-      // Map the task back to frontend structure
-      return { 
-        success: true, 
-        todo: {
-          id: savedTask.id,
-          userId: savedTask.userId,
-          title: savedTask.title,
-          desc: savedTask.description, // Map description back to desc
-          completed: savedTask.completed,
-          createdAt: savedTask.createdAt ? new Date(savedTask.createdAt) : new Date()
-        }
-      };
-    } catch (apiError) {
-      console.error("API error details:", apiError);
-      
-      // Check specific error type for more helpful messages in this code 
-      if (apiError.message && apiError.message.includes('timeout')) {
-        return { 
-          success: false, 
-          error: "Connection to backend timed out. Please check if the server is running and accessible."
-        };
-      }
-      
-      if (apiError.code === 'ECONNREFUSED') {
-        return { 
-          success: false, 
-          error: "Cannot connect to the backend server. Make sure it's running."
-        };
-      }
-      
-      if (apiError.response) {
-        // Handle specific status codes
-        if (apiError.response.status === 401) {
-          return { 
-            success: false, 
-            error: "Authentication error. Your session may have expired. Please log in again."
-          };
-        }
-        
-        if (apiError.response.status === 405) {
-          return { 
-            success: false, 
-            error: "Method Not Allowed (405). The API endpoint doesn't support this operation. Please check API configuration."
-          };
-        }
-        
-        if (apiError.response.status === 400) {
-          return { 
-            success: false, 
-            error: "Bad Request (400). The server couldn't understand the request. Check your data format."
-          };
-        }
-        
-        return { 
-          success: false, 
-          error: `Server returned error ${apiError.response.status}: ${apiError.response.data?.message || apiError.message}`
-        };
-      }
-      
-      throw apiError; // Re-throw to be caught by outer handler
+    // Use fetch API directly to make the request
+    const response = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify(taskData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
+    const savedTask = await response.json();
+    
+    // Map the task back to frontend structure
+    return { 
+      success: true, 
+      todo: {
+        id: savedTask.id,
+        userId: savedTask.userId,
+        title: savedTask.title,
+        desc: savedTask.description, // Map description back to desc
+        completed: savedTask.completed,
+        createdAt: savedTask.createdAt ? new Date(savedTask.createdAt) : new Date()
+      }
+    };
   } catch (error) {
-    console.error("API error when creating task:", error);
-    return { success: false, error: error.message || "Failed to add todo" };
+    console.error("Error adding todo:", error.message);
+    return { 
+      success: false, 
+      error: error.message || "Failed to add todo. Please try again."
+    };
   }
 };
 

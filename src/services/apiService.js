@@ -18,18 +18,11 @@ apiClient.interceptors.request.use(
   async (config) => {
     // Get Firebase token from local storage
     const firebaseToken = localStorage.getItem('firebaseToken');
-    console.log("API Request to:", config.baseURL + config.url);
-    console.log("Token available:", !!firebaseToken);
     
     if (firebaseToken) {
-      console.log("Setting Authorization header with token");
       // Firebase tokens should be sent as-is, without the Bearer prefix
       // The Spring Boot backend expects just the raw Firebase token
       config.headers.Authorization = firebaseToken;
-      console.log("Authorization header set with token length:", firebaseToken.length);
-    } else {
-      console.log("⚠️ No token available for request - authentication will likely fail");
-      console.log("User auth state:", auth?.currentUser ? "Logged in" : "Not logged in");
     }
     return config;
   },
@@ -42,20 +35,12 @@ apiClient.interceptors.request.use(
 // Add a response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => {
-    console.log("API Response success from:", response.config.url);
     return response;
   },
   (error) => {
     // Handle specific error cases
     if (error.response) {
-      const { status, data } = error.response;
-      
-      console.error('API Error:', {
-        status,
-        url: error.config.url,
-        message: data?.message || 'Unknown error',
-        data: data
-      });
+      const { status } = error.response;
       
       // Handle authentication errors
       if (status === 401) {
@@ -64,17 +49,6 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('firebaseToken');
         // You could dispatch an event or use a central auth state manager here
       }
-    } else if (error.request) {
-      // Network error or no response
-      console.error('Network Error:', error.message);
-      console.error('Request details:', {
-        url: error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-        timeout: error.config?.timeout
-      });
-    } else {
-      console.error('Error:', error.message);
     }
     
     return Promise.reject(error);
@@ -134,25 +108,11 @@ export const TaskService = {
   // Create a new task
   createTask: async (taskData) => {
     try {
-      console.log("Creating new task:", taskData);
-      console.log("Endpoint:", API_BASE_URL + ENDPOINTS.TASKS);
-      console.log("Request data:", JSON.stringify(taskData));
-      
       const task = taskData instanceof Task ? taskData : taskData;
       const response = await apiClient.post(ENDPOINTS.TASKS, task);
-      console.log("Task created response:", response.data);
       return Task.fromJSON ? Task.fromJSON(response.data) : response.data;
     } catch (error) {
-      console.error('Error creating task:', error);
-      // Handle specific status codes
-      if (error.response && error.response.status === 405) {
-        console.error('Method Not Allowed: This endpoint does not support POST requests');
-        console.error('Endpoint details:', {
-          url: error.config.url,
-          method: error.config.method,
-          headers: error.config.headers
-        });
-      }
+      console.error('Error creating task:', error.message);
       throw error;
     }
   },

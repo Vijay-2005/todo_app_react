@@ -5,14 +5,15 @@
  */
 
 // Base API URL - Using direct URL for production and proxy for development
+// In development, we use an empty string because the proxy in package.json handles the forwarding
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 
                      (process.env.NODE_ENV === 'production' 
                       ? 'https://todo-web-backend-jqp2.onrender.com' 
-                      : '/api');
+                      : '');
 
 console.log("Using API base URL:", API_BASE_URL);
 
-// API endpoints
+// API endpoints - these are appended to the API_BASE_URL
 const ENDPOINTS = {
   // Task endpoints
   TASKS: '/api/tasks',

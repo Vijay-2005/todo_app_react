@@ -18,7 +18,6 @@ import {
   testDbConnection 
 } from './services/todoService';
 import { FirebaseAuthService } from './services/apiService';
-import { testAPIConnection } from './utils/apiTester';
 import Debug from './pages/Debug';
 
 function App() {
@@ -102,15 +101,8 @@ function App() {
           
           // If it's a timeout error, try the direct API test
           if (result.error && result.error.includes('timeout')) {
-            console.log("Timeout detected, running direct API connection test...");
-            const apiTest = await testAPIConnection();
-            
-            if (!apiTest.success) {
-              // Set more specific error message from the API test
-              setDbError(apiTest.error || "Failed to connect to backend. Please check if the server is running.");
-            } else {
-              setDbError("API server is running but the authentication or request timed out. Check Firebase setup.");
-            }
+            console.log("Timeout detected, database connection might be slow or unavailable.");
+            setDbError(result.error || "Failed to connect to backend. Please check if the server is running.");
           } else {
             setDbError(result.error || "Failed to connect to database. Please check your connection.");
           }
