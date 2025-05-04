@@ -4,9 +4,11 @@
  * Centralized for easy management across environments.
  */
 
-// Base API URL - Using proxy to avoid CORS issues
-// With proxy in package.json, we don't need the full URL
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
+// Base API URL - Using direct URL for production and proxy for development
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 
+                     (process.env.NODE_ENV === 'production' 
+                      ? 'https://todowebbackend-production.up.railway.app' 
+                      : '/api');
 
 console.log("Using API base URL:", API_BASE_URL);
 
@@ -42,4 +44,4 @@ export {
   ENDPOINTS,
   REQUEST_TIMEOUT,
   HTTP_STATUS
-}; 
+};
