@@ -2,14 +2,14 @@ import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Your Firebase config (copy from Firebase Console -> Project settings)
+// Your Firebase config using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyCC9CHDajNnYyJ4oyZZ_DLoz0PswUlmixg",
-  authDomain: "todo-app-auth-2e667.firebaseapp.com",
-  projectId: "todo-app-auth-2e667",
-  storageBucket: "todo-app-auth-2e667.appspot.com", // Fixed storage bucket URL format
-  messagingSenderId: "258007276648",
-  appId: "1:258007276648:web:c5d606d60a4286cfb5afdd"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
 // Initialize Firebase

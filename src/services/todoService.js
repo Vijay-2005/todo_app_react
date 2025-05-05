@@ -1,6 +1,23 @@
+/**
+ * Todo Service Module
+ * 
+ * This module provides higher-level services for todo-related operations.
+ * It acts as a bridge between the frontend components and the API service,
+ * handling data transformation, error handling, and business logic.
+ * 
+ * The service includes functions for:
+ * - Testing backend connectivity
+ * - Fetching todos for a user
+ * - Adding, editing, deleting, and completing todos
+ * - Field mapping between frontend and backend models
+ */
 import { TaskService } from './apiService';
 
-// Test database connection
+/**
+ * Test database connection
+ * Performs a simple API request to check if the backend is accessible
+ * @returns {Object} Success indicator and error message if applicable
+ */
 export const testDbConnection = async () => {
   try {
     console.log("Testing API connection...");
@@ -45,7 +62,12 @@ export const testDbConnection = async () => {
   }
 };
 
-// Get todos for the current user
+/**
+ * Get todos for the current user
+ * Fetches tasks from the backend and maps them to the frontend model
+ * @param {string} userId - Firebase user ID
+ * @returns {Array} Array of todo objects formatted for the frontend
+ */
 export const getUserTodos = async (userId) => {
   try {
     if (!userId) {
@@ -73,7 +95,7 @@ export const getUserTodos = async (userId) => {
         id: task.id,
         userId: task.userId,
         title: task.title,
-        desc: task.description, // Map description to desc
+        desc: task.description, // Map description to desc for frontend compatibility
         completed: task.completed,
         createdAt: task.createdAt ? new Date(task.createdAt) : new Date(),
         updatedAt: task.updatedAt ? new Date(task.updatedAt) : null
@@ -91,7 +113,14 @@ export const getUserTodos = async (userId) => {
   }
 };
 
-// Add a new todo
+/**
+ * Add a new todo
+ * Creates a new task in the backend and maps the response to frontend format
+ * @param {string} userId - Firebase user ID
+ * @param {string} title - Todo title
+ * @param {string} desc - Todo description
+ * @returns {Object} Success indicator and created todo object
+ */
 export const addTodo = async (userId, title, desc) => {
   try {
     if (!userId) {
@@ -108,7 +137,7 @@ export const addTodo = async (userId, title, desc) => {
     // Create task data with the correct field names for the backend
     const taskData = {
       title: title,
-      description: desc, // Map desc to description for backend
+      description: desc, // Map desc to description for backend compatibility
       completed: false
     };
     
@@ -123,7 +152,7 @@ export const addTodo = async (userId, title, desc) => {
           id: savedTask.id,
           userId: savedTask.userId,
           title: savedTask.title,
-          desc: savedTask.description, // Map description back to desc
+          desc: savedTask.description, // Map description back to desc for frontend
           completed: savedTask.completed,
           createdAt: savedTask.createdAt ? new Date(savedTask.createdAt) : new Date()
         }
@@ -141,7 +170,12 @@ export const addTodo = async (userId, title, desc) => {
   }
 };
 
-// Delete a todo
+/**
+ * Delete a todo
+ * Removes a task from the backend
+ * @param {string|number} todoId - ID of the todo to delete
+ * @returns {Object} Success indicator and error message if applicable
+ */
 export const deleteTodo = async (todoId) => {
   try {
     if (!todoId) {
@@ -158,7 +192,14 @@ export const deleteTodo = async (todoId) => {
   }
 };
 
-// Edit a todo
+/**
+ * Edit a todo
+ * Updates a task in the backend and maps the response to frontend format
+ * @param {string|number} todoId - ID of the todo to edit
+ * @param {string} title - New title
+ * @param {string} desc - New description
+ * @returns {Object} Success indicator and updated todo object
+ */
 export const editTodo = async (todoId, title, desc) => {
   try {
     if (!todoId) {
@@ -173,7 +214,7 @@ export const editTodo = async (todoId, title, desc) => {
     const taskData = {
       ...currentTask,
       title: title,
-      description: desc // Map desc to description for backend
+      description: desc // Map desc to description for backend compatibility
     };
     
     // Use the API service to update the task
@@ -185,7 +226,7 @@ export const editTodo = async (todoId, title, desc) => {
         id: updatedTask.id,
         userId: updatedTask.userId,
         title: updatedTask.title,
-        desc: updatedTask.description, // Map description back to desc
+        desc: updatedTask.description, // Map description back to desc for frontend
         completed: updatedTask.completed,
         updatedAt: updatedTask.updatedAt ? new Date(updatedTask.updatedAt) : new Date()
       }
@@ -196,7 +237,13 @@ export const editTodo = async (todoId, title, desc) => {
   }
 };
 
-// Complete a todo
+/**
+ * Complete a todo
+ * Updates the completion status of a task in the backend
+ * @param {string|number} todoId - ID of the todo to update
+ * @param {boolean} completed - New completion status
+ * @returns {Object} Success indicator and updated todo object
+ */
 export const completeTodo = async (todoId, completed) => {
   try {
     if (!todoId) {
@@ -222,7 +269,7 @@ export const completeTodo = async (todoId, completed) => {
         id: updatedTask.id,
         userId: updatedTask.userId,
         title: updatedTask.title,
-        desc: updatedTask.description, // Map description back to desc
+        desc: updatedTask.description, // Map description back to desc for frontend
         completed: updatedTask.completed,
         completedAt: completed ? new Date() : null
       }

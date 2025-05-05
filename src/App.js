@@ -3,7 +3,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './MyComponents/Header';
 import Footer from './MyComponents/Footer';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -33,11 +33,71 @@ function App() {
     return `todos_${userId}`;
   };
 
+  // Memoize fetchTodos so it can be used in the useEffect and called directly
+  const fetchTodos = useCallback(async (userId) => {
+    if (!userId) return;
+    
+    console.log("Fetching todos for user:", userId);
+    setLoading(true);
+    
+    try {
+      const userTodos = await getUserTodos(userId);
+      console.log("Fetched todos from Firebase:", userTodos);
+      
+      if (Array.isArray(userTodos) && userTodos.length > 0) {
+        // Store todos in localStorage with user-specific key
+        const storageKey = getTodosStorageKey(userId);
+        localStorage.setItem(storageKey, JSON.stringify(userTodos));
+        console.log("Saved todos to localStorage with key:", storageKey);
+        
+        setTodos(userTodos);
+        setFilteredTodos(userTodos);
+      } else {
+        console.log("No todos fetched from Firebase or empty array received");
+        
+        // Try to recover from localStorage only if Firebase returned empty
+        const storageKey = getTodosStorageKey(userId);
+        const savedTodos = localStorage.getItem(storageKey);
+        
+        if (savedTodos) {
+          const parsedTodos = JSON.parse(savedTodos);
+          if (Array.isArray(parsedTodos) && parsedTodos.length > 0) {
+            console.log("Using cached todos from localStorage:", parsedTodos);
+            setTodos(parsedTodos);
+            setFilteredTodos(parsedTodos);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching todos:", error);
+      setDbError("Failed to load your todos. Please try again.");
+      
+      // Try to recover from localStorage
+      const storageKey = getTodosStorageKey(userId);
+      const savedTodos = localStorage.getItem(storageKey);
+      
+      if (savedTodos) {
+        try {
+          const parsedTodos = JSON.parse(savedTodos);
+          console.log("Recovered todos from localStorage:", parsedTodos);
+          setTodos(parsedTodos);
+          setFilteredTodos(parsedTodos);
+        } catch (e) {
+          console.error("Error parsing saved todos:", e);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Listen for authentication state changes
   useEffect(() => {
     console.log("Setting up auth listener");
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       console.log("Auth state changed:", currentUser ? "User logged in" : "No user");
+      
+      // First set the user so the UI can update immediately
       setUser(currentUser);
       
       if (currentUser) {
@@ -57,27 +117,33 @@ function App() {
           } else {
             console.warn("Token format warning: Does not contain periods");
           }
+          
+          // Load cached todos from localStorage immediately after login
+          const storageKey = getTodosStorageKey(currentUser.uid);
+          const cachedTodos = localStorage.getItem(storageKey);
+          
+          if (cachedTodos) {
+            try {
+              const parsedTodos = JSON.parse(cachedTodos);
+              console.log("Loaded cached todos for user:", currentUser.uid, parsedTodos);
+              setTodos(parsedTodos);
+              setFilteredTodos(parsedTodos);
+            } catch (e) {
+              console.error("Error parsing cached todos:", e);
+            }
+          }
+          
+          // Fetch fresh todos immediately after setting token
+          fetchTodos(currentUser.uid);
         } catch (error) {
           console.error("Error getting Firebase token:", error);
-        }
-        
-        // Load cached todos from localStorage immediately after login
-        const storageKey = getTodosStorageKey(currentUser.uid);
-        const cachedTodos = localStorage.getItem(storageKey);
-        
-        if (cachedTodos) {
-          try {
-            const parsedTodos = JSON.parse(cachedTodos);
-            console.log("Loaded cached todos for user:", currentUser.uid, parsedTodos);
-            setTodos(parsedTodos);
-            setFilteredTodos(parsedTodos);
-          } catch (e) {
-            console.error("Error parsing cached todos:", e);
-          }
         }
       } else {
         // Clear Firebase token when logged out
         FirebaseAuthService.clearToken();
+        // Clear todos when user is logged out
+        setTodos([]);
+        setFilteredTodos([]);
       }
       
       setLoading(false);
@@ -89,7 +155,7 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [fetchTodos]);
 
   // Test database connection when app loads
   useEffect(() => {
@@ -114,72 +180,6 @@ function App() {
     };
     testDb();
   }, []);
-
-  // Fetch todos when user changes
-  useEffect(() => {
-    const fetchTodos = async () => {
-      if (user) {
-        console.log("Fetching todos for user:", user.uid);
-        setLoading(true);
-        
-        try {
-          const userTodos = await getUserTodos(user.uid);
-          console.log("Fetched todos from Firebase:", userTodos);
-          
-          if (Array.isArray(userTodos) && userTodos.length > 0) {
-            // Store todos in localStorage with user-specific key
-            const storageKey = getTodosStorageKey(user.uid);
-            localStorage.setItem(storageKey, JSON.stringify(userTodos));
-            console.log("Saved todos to localStorage with key:", storageKey);
-            
-            setTodos(userTodos);
-            setFilteredTodos(userTodos);
-          } else {
-            console.log("No todos fetched from Firebase or empty array received");
-            
-            // Try to recover from localStorage only if Firebase returned empty
-            const storageKey = getTodosStorageKey(user.uid);
-            const savedTodos = localStorage.getItem(storageKey);
-            
-            if (savedTodos) {
-              const parsedTodos = JSON.parse(savedTodos);
-              if (Array.isArray(parsedTodos) && parsedTodos.length > 0) {
-                console.log("Using cached todos from localStorage:", parsedTodos);
-                setTodos(parsedTodos);
-                setFilteredTodos(parsedTodos);
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching todos:", error);
-          setDbError("Failed to load your todos. Please try again.");
-          
-          // Try to recover from localStorage
-          const storageKey = getTodosStorageKey(user.uid);
-          const savedTodos = localStorage.getItem(storageKey);
-          
-          if (savedTodos) {
-            try {
-              const parsedTodos = JSON.parse(savedTodos);
-              console.log("Recovered todos from localStorage:", parsedTodos);
-              setTodos(parsedTodos);
-              setFilteredTodos(parsedTodos);
-            } catch (e) {
-              console.error("Error parsing saved todos:", e);
-            }
-          }
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        // Clear todos when user is logged out
-        setTodos([]);
-        setFilteredTodos([]);
-      }
-    };
-
-    fetchTodos();
-  }, [user]);
 
   const handleSearch = (searchTerm) => {
     if (!searchTerm) {

@@ -1,3 +1,10 @@
+/**
+ * API Service Module
+ * 
+ * This module handles all communication with the backend API through Axios.
+ * It provides services for task-related CRUD operations and Firebase authentication.
+ * The module configures Axios with interceptors for authentication and error handling.
+ */
 import axios from 'axios';
 import { API_BASE_URL, ENDPOINTS, REQUEST_TIMEOUT } from '../config/api.config';
 import Task from '../models/Task';
@@ -13,7 +20,13 @@ const apiClient = axios.create({
   withCredentials: false, // Disable credentials for cross-origin requests
 });
 
-// Add a request interceptor for Firebase authentication
+/**
+ * Request Interceptor for Authentication
+ * 
+ * This interceptor attaches the Firebase token to outgoing requests.
+ * It gets the token from localStorage and adds it to the Authorization header.
+ * Important: The Spring Boot backend expects the raw Firebase token without Bearer prefix.
+ */
 apiClient.interceptors.request.use(
   async (config) => {
     // Get Firebase token from local storage
@@ -32,7 +45,13 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add a response interceptor for error handling
+/**
+ * Response Interceptor for Error Handling
+ * 
+ * This interceptor handles common API error cases:
+ * - 401 Unauthorized: Clears the token and could redirect to login
+ * - Other errors are passed through to be handled by the services
+ */
 apiClient.interceptors.response.use(
   (response) => {
     return response;
@@ -55,7 +74,17 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Task API functions
+/**
+ * Task Service
+ * 
+ * Provides methods for interacting with the task-related API endpoints:
+ * - Getting all tasks (with optional filtering)
+ * - Getting a single task by ID
+ * - Creating new tasks
+ * - Updating existing tasks
+ * - Deleting tasks
+ * - Searching and filtering tasks
+ */
 export const TaskService = {
   // Get all tasks (with optional filtering)
   getAllTasks: async (options = {}) => {
@@ -93,7 +122,11 @@ export const TaskService = {
     }
   },
 
-  // Get task by ID
+  /**
+   * Get a single task by ID
+   * @param {string|number} taskId - The ID of the task to retrieve
+   * @returns {Object} The task object
+   */
   getTaskById: async (taskId) => {
     try {
       console.log("Fetching task by ID:", taskId);
@@ -105,7 +138,11 @@ export const TaskService = {
     }
   },
 
-  // Create a new task
+  /**
+   * Create a new task
+   * @param {Object} taskData - The task data to create
+   * @returns {Object} The created task
+   */
   createTask: async (taskData) => {
     try {
       const task = taskData instanceof Task ? taskData : taskData;
@@ -117,7 +154,12 @@ export const TaskService = {
     }
   },
 
-  // Update a task
+  /**
+   * Update an existing task
+   * @param {string|number} taskId - The ID of the task to update
+   * @param {Object} taskData - The updated task data
+   * @returns {Object} The updated task
+   */
   updateTask: async (taskId, taskData) => {
     try {
       console.log("Updating task:", taskId, taskData);
@@ -130,7 +172,11 @@ export const TaskService = {
     }
   },
 
-  // Delete a task
+  /**
+   * Delete a task
+   * @param {string|number} taskId - The ID of the task to delete
+   * @returns {Object} Success indicator and task ID
+   */
   deleteTask: async (taskId) => {
     try {
       console.log("Deleting task:", taskId);
@@ -142,7 +188,11 @@ export const TaskService = {
     }
   },
 
-  // Search tasks
+  /**
+   * Search tasks by query string
+   * @param {string} query - The search query
+   * @returns {Array} Array of tasks matching the query
+   */
   searchTasks: async (query) => {
     try {
       const response = await apiClient.get(ENDPOINTS.SEARCH_TASKS(query));
@@ -153,7 +203,11 @@ export const TaskService = {
     }
   },
 
-  // Get tasks by completion status
+  /**
+   * Get tasks filtered by completion status
+   * @param {boolean} completed - Whether to get completed or incomplete tasks
+   * @returns {Array} Array of filtered tasks
+   */
   getTasksByStatus: async (completed) => {
     try {
       const response = await apiClient.get(ENDPOINTS.FILTER_TASKS(completed));
@@ -165,21 +219,36 @@ export const TaskService = {
   }
 };
 
-// Auth helper for Firebase
+/**
+ * Firebase Authentication Service
+ * 
+ * Provides methods for handling Firebase authentication:
+ * - Setting the Firebase token
+ * - Clearing the token
+ * - Checking if the user is authenticated
+ */
 export const FirebaseAuthService = {
-  // Set Firebase token
+  /**
+   * Set Firebase token in localStorage
+   * @param {string} token - The Firebase authentication token
+   */
   setToken: (token) => {
     console.log("Setting Firebase token");
     localStorage.setItem('firebaseToken', token);
   },
   
-  // Clear Firebase token
+  /**
+   * Clear Firebase token from localStorage
+   */
   clearToken: () => {
     console.log("Clearing Firebase token");
     localStorage.removeItem('firebaseToken');
   },
   
-  // Check if authenticated
+  /**
+   * Check if user is authenticated based on token presence
+   * @returns {boolean} Authentication status
+   */
   isAuthenticated: () => {
     return !!localStorage.getItem('firebaseToken');
   }
